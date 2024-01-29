@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[56],{56:(e,t,n)=>{n.r(t),n.d(t,{ToastWeb:()=>a});var s=n(895);class a extends s.Uw{async show(e){if("undefined"!=typeof document){let t=2e3;e.duration&&(t="long"===e.duration?3500:2e3);const n=document.createElement("pwa-toast");n.duration=t,n.message=e.text,document.body.appendChild(n)}}}}}]);
