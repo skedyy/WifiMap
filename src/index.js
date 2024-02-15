@@ -2,19 +2,95 @@ import { Clipboard } from '@capacitor/clipboard';
 import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
 import { Toast } from '@capacitor/toast';
 import { Geolocation } from '@capacitor/geolocation';
+import { Network } from '@capacitor/network';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
+import axios from 'axios';
+import write_blob from "capacitor-blob-writer";
+
 var name
 var pass
-document.addEventListener('deviceready',() => {
-    var permissions = Geolocation.checkPermissions()
-        .then(async (permission) =>{
-            if(permission.location == "prompt"){
-                await Geolocation.requestPermissions("location")
-                window.location.reload
+var styleUri
+var blobB64
+document.addEventListener('deviceready',async () => {
+    await Geolocation.requestPermissions("location")
+    await Toast.show({
+            text:"Recuerda conectarte a internet la primera vez y frecuentemente para actualizar la app!",
+            duration: 'long'
+        });
+    var status = (await Network.getStatus()).connectionType
+    if (status == "wifi"){
+        await downloadStyle()    
+        await downloadgeoJson()
+        await downloadtiles()
+    }
+    if(status == "none"){
+        loadMap()
+    }
+    async function downloadStyle() {
+            // Descargar el archivo
+            const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/style.json"
+            );
+            const json = JSON.stringify(response.data);
+            // Guardar el archivo en la carpeta de descargas
+            const filename = 'style.json';
+            await Filesystem.writeFile({
+                directory: Directory.Data,
+                path: `wifimap/${filename}`,
+                data: json,
+                recursive: true,
+                encoding: Encoding.UTF8
+            });
+        }
+        async function downloadgeoJson() {
+            // Descargar el archivo
+            const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/Networks.geojson"
+            );  
+            const json = JSON.stringify(response.data);
+            // Guardar el archivo en la carpeta de descargas
+            const filename = 'Networks.geojson';
+            await Filesystem.writeFile({
+                directory: Directory.Data,
+                path: `wifimap/${filename}`,
+                data: json,
+                recursive: true,
+                encoding: Encoding.UTF8
+            });
+        }
+        async function downloadtiles() {
+            try{
+                await Filesystem.readFile({
+                    path:"wifimap/WifiMap.mbtiles",
+                    directory: Directory.Data
+                }).then((result)=>{
+                    if(!result.data==""){
+                        loadMap();
+                    }else{
+                        alert("Actualizando la base de datos, no te desconectes!")
+                      throw console.error("not exists");
+                         
+                    }
+                })
+            }catch{
+  const videoResponse = await fetch("https://skedyy.000webhostapp.com/WifiMap/WifiMap.mbtiles");
+  const videoBlob = await videoResponse.blob();
+  await write_blob({
+    path: "/wifimap/WifiMap.mbtiles",
+    directory: Directory.Data,
+    blob: videoBlob,
+    recursive: true,
+  });
+  loadMap()
+}
             }
-        })
-    maplibregl.OfflineMap({
+        async function loadMap(){
+    await Filesystem.getUri({path:"wifimap/style.json",directory: Directory.Data})
+    .then((urlresult)=>{
+        styleUri = urlresult.uri
+    })
+            maplibregl.OfflineMap({
         container: 'map',
-        style: 'styles/skedyy.json',
+        style: Capacitor.convertFileSrc(styleUri),
         center: [
             2.15,
             41.38
@@ -62,8 +138,8 @@ document.addEventListener('deviceready',() => {
             button.addEventListener("click", connectButton)
         });
     });
-}, false)
-async function connectButton() {
+    }
+    async function connectButton() {
     console.log("button pressed: " + name + " " + pass)
     if(pass == ""|| pass == null || pass == undefined || pass == " "){
         await Toast.show({
@@ -93,3 +169,4 @@ async function connectButton() {
         console.log("settings opened")
     }
 }
+}, false)
