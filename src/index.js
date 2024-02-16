@@ -20,9 +20,9 @@ document.addEventListener('deviceready',async () => {
         });
     var status = (await Network.getStatus()).connectionType
     if (status == "wifi"){
+        alert("Actualizando la base de datos, No te desconectes!")
         await downloadStyle()    
         await downloadgeoJson()
-        await downloadtiles()
     }
     if(status == "none"){
         loadMap()
@@ -55,7 +55,11 @@ document.addEventListener('deviceready',async () => {
                 data: json,
                 recursive: true,
                 encoding: Encoding.UTF8
-            });
+            }).then((result)=>{
+                if(!result.uri==""||!result.uri==null||!result.uri==undefined){
+                    loadMap()
+                }
+            })
         }
         async function downloadtiles() {
             try{

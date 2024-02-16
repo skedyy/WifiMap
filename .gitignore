@@ -2,3 +2,4 @@
 /android
 /dist
 /node_modules
+resources/android/**/*
