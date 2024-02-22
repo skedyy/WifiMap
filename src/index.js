@@ -24,7 +24,7 @@ document.addEventListener('deviceready',async () => {
         await downloadStyle()    
         await downloadgeoJson()
     }
-    if(status == "none"){
+    if(status == "none"|| status=="unknown"){
         loadMap()
     }
     async function downloadStyle() {
