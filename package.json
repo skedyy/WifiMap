@@ -6,16 +6,19 @@
     "@capacitor/android": "^5.6.0",
     "@capacitor/clipboard": "^5.0.6",
     "@capacitor/core": "^5.6.0",
+    "@capacitor/dialog": "^5.0.7",
     "@capacitor/filesystem": "^5.2.1",
     "@capacitor/geolocation": "^5.0.6",
     "@capacitor/network": "^5.0.7",
+    "@capacitor/preferences": "^5.0.7",
     "@capacitor/toast": "^5.0.6",
     "axios": "^1.6.7",
     "capacitor-blob-writer": "^1.1.14",
     "capacitor-native-settings": "^5.0.1",
     "cordova-plugin-device": "^2.1.0",
     "cordova-plugin-file": "^8.0.1",
-    "cordova-sqlite-ext": "^6.0.0"
+    "cordova-sqlite-ext": "^6.0.0",
+    "wifi-qr-code-generator": "^1.1.1"
   },
   "devDependencies": {
     "@capacitor/cli": "^5.6.0",
