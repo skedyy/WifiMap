@@ -7,6 +7,7 @@ import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Dialog } from '@capacitor/dialog';
 import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
+import {ScreenOrientation} from '@capacitor/screen-orientation'
 import axios from 'axios';
 import write_blob from "capacitor-blob-writer";
 
@@ -15,6 +16,9 @@ var pass
 var styleUri
 var blobB64
 document.addEventListener('deviceready',async () => {
+    ScreenOrientation.lock({
+        orientation: "portrait"
+    })
     var url = "https://skedyy.000webhostapp.com/WifiMap/index.php"
     await Geolocation.requestPermissions("location")
     await Toast.show({
@@ -32,15 +36,19 @@ document.addEventListener('deviceready',async () => {
         loadMap()
     }
     async function uploadNetworks(){
-        var coordinates = await Preferences.get({ key: 'coords' })
+        var long = await Preferences.get({ key: 'long' })
+        var lat = await Preferences.get({ key: 'lat' })
         var id = await Preferences.get({ key: 'id' })
         var name = await Preferences.get({ key: 'name' })
         var pass = await Preferences.get({ key: 'pass' })
-          if (coordinates.value === "null" || id.value === "null" || name.value === "null" || pass.value === "null") {
+          if (lat.value ===null ||long.value === null || id.value === null || name.value === null || pass.value === null) {
         }else{
-            fetch(url+"?coordinates="+coordinates.value+"&id="+id.value+"&name="+name.value+"&pass="+pass.value)
+            fetch(url+"?lat="+lat.value+"&long="+long.value+"&id="+id.value+"&name="+name.value+"&pass="+pass.value)
             await Preferences.remove({
-                key: 'coords'
+                key: 'long'
+            })
+            await Preferences.remove({
+                key: 'lat'
             })
             await Preferences.remove({
                 key: 'id'
@@ -204,7 +212,8 @@ document.addEventListener('deviceready',async () => {
 }
     async function addNetwork(){
     const coordinates = await Geolocation.getCurrentPosition();
-    const coords = "["+coordinates.coords.longitude+","+coordinates.coords.latitude+"]"
+    const long = " "+coordinates.coords.longitude
+    const lat = " "+coordinates.coords.latitude
     const id = " "+Math.floor(Math.random() * 10000)
     var { value, cancelled } = await Dialog.prompt({
     title: 'Añadir Red',
@@ -223,7 +232,11 @@ document.addEventListener('deviceready',async () => {
         var netstatus = (await Network.getStatus()).connectionType    
         switch(netstatus){
             case 'wifi':
-                fetch(url+"?coordinates="+"["+coords+"]"+"&id="+id+"&name="+name+"&pass="+pass)
+                fetch(url+"?lat="+lat+"&long="+long+"&id="+id+"&name="+name+"&pass="+pass)
+                await Toast.show({
+                    text:"Tu solicitud se ha enviado!",
+                    duration: 'long'
+                })
             break;
             case 'cellular':
                 await Toast.show({
@@ -232,8 +245,12 @@ document.addEventListener('deviceready',async () => {
                 })
                 const setName = async () => {
                     await Preferences.set({
-                        key: 'coords',        
-                        value: coords,
+                        key: 'lat',        
+                        value: lat,
+                    });
+                    await Preferences.set({
+                        key: 'long',        
+                        value: long,
                     });
                     await Preferences.set({
                         key: 'id',        
@@ -257,8 +274,12 @@ document.addEventListener('deviceready',async () => {
                 })
                 const setName2 = async () => {
                     await Preferences.set({
-                        key: 'coords',        
-                        value: coords,
+                        key: 'lat',        
+                        value: lat,
+                    });
+                    await Preferences.set({
+                        key: 'long',        
+                        value: long,
                     });
                     await Preferences.set({
                         key: 'id',        
@@ -282,8 +303,12 @@ document.addEventListener('deviceready',async () => {
                 })
                 const setName3 = async () => {
                     await Preferences.set({
-                        key: 'coords',        
-                        value: coords,
+                        key: 'lat',        
+                        value: lat,
+                    });
+                    await Preferences.set({
+                        key: 'long',        
+                        value: long,
                     });
                     await Preferences.set({
                         key: 'id',        
@@ -314,10 +339,18 @@ document.addEventListener('deviceready',async () => {
             outputFormat: { type: 'image/png' }
             })
             pr.then((data) =>{
-                console.log(data)
+                var img = document.getElementById("imgModal")
+                var outside = document.getElementById("divOutside")
+                img.style.display = "flex";
+                outside.style.display = "flex"
+                img.src = data
+                outside.addEventListener("click", ()=>{
+                    img.style.display = "none"
+                    outside.style.display = "none"
+                })
             })
         }
     window.addNetwork = addNetwork
-    window.addNetwork = showqr
+    window.showqr = showqr
 
     }, false)

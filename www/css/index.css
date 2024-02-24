@@ -140,12 +140,21 @@ body{
     background-color: #298e46;
     box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
 }
-#myImg {
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
+
+.imgModal{
+    position: absolute;
+    z-index: 4;
+    width: 70vw;
+    height: 35vh;
+    margin-top: 35vh;
+    margin-bottom: 25vh;
+    margin-right: 25vw;
+    margin-left: 15vw;
 }
-#col-lg-4{
+#divOutside{
     position: absolute;
     z-index: 3;
+    display: none;
+    width: 100vw;
+    height: 100vh;
 }
