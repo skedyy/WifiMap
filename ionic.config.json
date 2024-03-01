@@ -1,0 +1,7 @@
+{
+  "name": "wifimap",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}

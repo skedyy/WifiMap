@@ -14,7 +14,7 @@ import write_blob from "capacitor-blob-writer";
 var name
 var pass
 var styleUri
-var blobB64
+var mapa
 document.addEventListener('deviceready',async () => {
     ScreenOrientation.lock({
         orientation: "portrait"
@@ -32,7 +32,7 @@ document.addEventListener('deviceready',async () => {
         await downloadgeoJson()
         await uploadNetworks()
     }
-    if(status == "none"|| status=="unknown"){
+    if(status == "none"|| status=="unknown" || status == "cellular"){
         loadMap()
     }
     async function uploadNetworks(){
@@ -62,11 +62,13 @@ document.addEventListener('deviceready',async () => {
         }
     }
     async function downloadStyle() {
-            // Descargar el archivo
-            const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/style.json"
+            try {
+                const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/style.json"
             );
-            const json = JSON.stringify(response.data);
-            // Guardar el archivo en la carpeta de descargas
+            var json = JSON.stringify(response.data);   
+            } catch (error) {
+                loadMap()   
+            }
             const filename = 'style.json';
             await Filesystem.writeFile({
                 directory: Directory.Data,
@@ -77,11 +79,13 @@ document.addEventListener('deviceready',async () => {
             });
         }
         async function downloadgeoJson() {
-            // Descargar el archivo
-            const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/Networks.geojson"
+            try {
+                const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/Networks.geojson"
             );  
-            const json = JSON.stringify(response.data);
-            // Guardar el archivo en la carpeta de descargas
+            var json = JSON.stringify(response.data);   
+            } catch (error) {
+                loadMap()
+            }
             const filename = 'Networks.geojson';
             await Filesystem.writeFile({
                 directory: Directory.Data,
@@ -136,7 +140,8 @@ document.addEventListener('deviceready',async () => {
         zoom: 1,
         bearing: 0,
         hash: true
-    }).then((map) => {
+    }).then(async (map) => {
+        mapa = map
         map.addControl(new maplibregl.NavigationControl())
         map.addLayer({
             "id": "network-layer",
@@ -160,10 +165,6 @@ document.addEventListener('deviceready',async () => {
             const coordinates = e.features[0].geometry.coordinates.slice();
             name = e.features[0].properties.name;
             pass = e.features[0].properties.pass;
-
-            // Ensure that if the map is zoomed out such that multiple
-            // copies of the feature are visible, the popup appears
-            // over the copy being pointed to.
             while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
                 coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
             }
@@ -232,11 +233,70 @@ document.addEventListener('deviceready',async () => {
         var netstatus = (await Network.getStatus()).connectionType    
         switch(netstatus){
             case 'wifi':
-                fetch(url+"?lat="+lat+"&long="+long+"&id="+id+"&name="+name+"&pass="+pass)
-                await Toast.show({
+                try {
+                    if(name===""| name===" " || name===null){
+                        await Toast.show({
+                            text:" No puedes dejar el nombre vacio!",
+                            duration:"long"
+                        })
+                    }else{
+                        fetch(url+"?lat="+lat+"&long="+long+"&id="+id+"&name="+name+"&pass="+pass)   
+                    await Toast.show({
                     text:"Tu solicitud se ha enviado!",
+                    duration: 'short'
+                })
+                    }
+                } catch (error) {
+                    await Toast.show({
+                        text:"Error al subir la solicitud, se subirá más tarde...",
+                        duration:"short"
+                    })  
+                    const setName = async () => {
+                    await Preferences.set({
+                        key: 'lat',        
+                        value: lat,
+                    });
+                    await Preferences.set({
+                        key: 'long',        
+                        value: long,
+                    });
+                    await Preferences.set({
+                        key: 'id',        
+                        value: id,
+                    });
+                    await Preferences.set({
+                        key: 'name',
+                        value: name,
+                    });
+                    await Preferences.set({
+                        key: 'pass',
+                        value: pass,
+                    });
+                };
+                setName()
+                }
+                try {
+                const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/Networks.geojson"
+                );  
+                const json = JSON.stringify(response.data);   
+                await Toast.show({
+                    text:"Recargando Mapa..",
                     duration: 'long'
                 })
+                var mapdom = document.getElementById("map")
+                mapdom.remove()
+                var mapnew = document.createElement("div")
+                mapnew.setAttribute("id","map");
+                document.body.appendChild(mapnew);
+                await downloadgeoJson()
+                loadMap()
+                } catch (error) {
+                  await Toast.show({
+                    text:"Error al actualizar :(",
+                    duration: 'short'
+                })  
+                loadMap()
+                }            
             break;
             case 'cellular':
                 await Toast.show({
@@ -331,12 +391,32 @@ document.addEventListener('deviceready',async () => {
     }
     async function showqr(){
             const qrcode = require('wifi-qr-code-generator')
-            const pr = qrcode.generateWifiQRCode({
-            ssid: name,
-            password: pass,
-            encryption: 'WPA',
-            hiddenSSID: false,
-            outputFormat: { type: 'image/png' }
+            if(pass == ""|| pass === "null" || pass == undefined || pass == " "){
+                const pr = qrcode.generateWifiQRCode({
+                ssid: name,
+                password: "",
+                encryption: 'None',
+                hiddenSSID: false,
+                outputFormat: { type: 'image/png' }
+            })
+            pr.then((data) =>{
+                var img = document.getElementById("imgModal")
+                var outside = document.getElementById("divOutside")
+                img.style.display = "flex";
+                outside.style.display = "flex"
+                img.src = data
+                outside.addEventListener("click", ()=>{
+                    img.style.display = "none"
+                    outside.style.display = "none"
+                })
+            })   
+            }else{
+                const pr = qrcode.generateWifiQRCode({
+                ssid: name,
+                password: pass,
+                encryption: 'WPA',
+                hiddenSSID: false,
+                outputFormat: { type: 'image/png' }
             })
             pr.then((data) =>{
                 var img = document.getElementById("imgModal")
@@ -349,6 +429,7 @@ document.addEventListener('deviceready',async () => {
                     outside.style.display = "none"
                 })
             })
+            }
         }
     window.addNetwork = addNetwork
     window.showqr = showqr

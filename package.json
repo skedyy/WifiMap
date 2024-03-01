@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "webpack && npx cap run android "
+    "build": "webpack && npx cap run android ",
+    "ionic:build": "npm run build"
   },
   "dependencies": {
     "@capacitor/android": "^5.6.0",
@@ -25,5 +26,7 @@
     "@capacitor/cli": "^5.6.0",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
-  }
+  },
+  "name": "my-app",
+  "version": "0.0.0"
 }
