@@ -41,7 +41,7 @@ document.addEventListener('deviceready',async () => {
     async function checkUpdates(){
     let apkurl
     try {
-        const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.3.0",
+        const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.3.1",
     );
         var response2 = response.text();
         if(response2==="App updated"){
@@ -54,10 +54,10 @@ document.addEventListener('deviceready',async () => {
             })
             var path = await Filesystem.downloadFile({
                 url: apkurl,
-                path: "/wifimap/WifiMap.1.3.0.apk",
+                path: "/wifimap/WifiMap.1.3.1.apk",
                 directory: Directory.Data
             })
-            await Filesystem.getUri({path:"/wifimap/WifiMap.1.3.0.apk",directory: Directory.Data})
+            await Filesystem.getUri({path:"/wifimap/WifiMap.1.3.1.apk",directory: Directory.Data})
             .then((urlresult)=>{
             apkUri = urlresult.uri
             })
