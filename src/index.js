@@ -43,8 +43,9 @@ document.addEventListener('deviceready',async () => {
     try {
         const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.3.1",
     );
-        var response2 = response.text();
-        if(response2==="App updated"){
+        var response2 = await response.text();
+        console.log(response2)
+        if(response2==="null"){
         }else{
             try {
                 apkurl = await response2
