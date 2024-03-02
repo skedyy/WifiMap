@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WifiMap</string>
+    <string name="title_activity_main">WifiMap</string>
+    <string name="package_name">com.skedyy.wifimap</string>
+    <string name="custom_url_scheme">com.skedyy.wifimap</string>
+</resources>

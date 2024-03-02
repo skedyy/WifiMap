@@ -4,6 +4,9 @@
     "ionic:build": "npm run build"
   },
   "dependencies": {
+    "@awesome-cordova-plugins/core": "^6.6.0",
+    "@awesome-cordova-plugins/file-opener": "6.6.0",
+    "@capacitor-community/file-opener": "^1.0.5",
     "@capacitor/android": "^5.6.0",
     "@capacitor/clipboard": "^5.0.6",
     "@capacitor/core": "^5.6.0",
@@ -19,6 +22,7 @@
     "capacitor-native-settings": "^5.0.1",
     "cordova-plugin-device": "^2.1.0",
     "cordova-plugin-file": "^8.0.1",
+    "cordova-plugin-file-opener2": "^4.0.0",
     "cordova-sqlite-ext": "^6.0.0",
     "wifi-qr-code-generator": "^1.1.1"
   },

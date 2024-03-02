@@ -3,6 +3,7 @@
   "appName": "WifiMap",
   "webDir": "www",
   "server": {
+    "cleartext": true,
     "androidScheme": "https",
     "allowNavigation": [
       "https://wifimap.42web.io"

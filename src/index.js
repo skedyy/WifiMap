@@ -8,12 +8,14 @@ import { Dialog } from '@capacitor/dialog';
 import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
 import {ScreenOrientation} from '@capacitor/screen-orientation'
+import { FileOpener } from '@capacitor-community/file-opener';
 import axios from 'axios';
 import write_blob from "capacitor-blob-writer";
 
 var name
 var pass
 var styleUri
+var apkUri
 var mapa
 document.addEventListener('deviceready',async () => {
     ScreenOrientation.lock({
@@ -31,10 +33,45 @@ document.addEventListener('deviceready',async () => {
         await downloadStyle()    
         await downloadgeoJson()
         await uploadNetworks()
+        await checkUpdates()
     }
     if(status == "none"|| status=="unknown" || status == "cellular"){
         loadMap()
     }
+    async function checkUpdates(){
+    let apkurl
+    try {
+        const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.2.0",
+    );
+        var response2 = response.text();
+        if(response2==="App Updated"){
+        }else{
+            apkurl = await response2
+            Toast.show({
+                text:"App Desactualizada, descargando nueva versión!",
+                duration: "short"
+            })
+            var path = await Filesystem.downloadFile({
+                url: apkurl,
+                path: "/wifimap/WifiMap.1.2.0.apk",
+                directory: Directory.Data
+            })
+            await Filesystem.getUri({path:"/wifimap/WifiMap.1.2.0.apk",directory: Directory.Data})
+            .then((urlresult)=>{
+            apkUri = urlresult.uri
+            })
+            await FileOpener.open({
+            filePath: apkUri,
+            contentType: "application/vnd.android.package-archive",
+            openWithDefault: false
+            })
+            }
+    }catch{
+        Toast.show({
+            text:"Error al actualizar la app, comprueba tu conexión"
+        })
+    }
+    }   
     async function uploadNetworks(){
         var long = await Preferences.get({ key: 'long' })
         var lat = await Preferences.get({ key: 'lat' })
