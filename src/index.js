@@ -44,9 +44,10 @@ document.addEventListener('deviceready',async () => {
         const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.3.0",
     );
         var response2 = response.text();
-        if(response2==="App Updated"){
+        if(response2==="App updated"){
         }else{
-            apkurl = await response2
+            try {
+                apkurl = await response2
             Toast.show({
                 text:"App Desactualizada, descargando nueva versión!",
                 duration: "short"
@@ -64,12 +65,15 @@ document.addEventListener('deviceready',async () => {
             filePath: apkUri,
             contentType: "application/vnd.android.package-archive",
             openWithDefault: false
-            })
+            })   
+            } catch (error) {
+                Toast.show({
+                    text:"Error al actualizar la app, comprueba tu conexión",
+                    duration: "short"
+                })     
+            }
             }
     }catch{
-        Toast.show({
-            text:"Error al actualizar la app, comprueba tu conexión"
-        })
     }
     }   
     async function uploadNetworks(){
