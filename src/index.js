@@ -41,7 +41,7 @@ document.addEventListener('deviceready',async () => {
     async function checkUpdates(){
     let apkurl
     try {
-        const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.3.1",
+        const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.4.0",
     );
         var response2 = await response.text();
         console.log(response2)
@@ -55,10 +55,10 @@ document.addEventListener('deviceready',async () => {
             })
             var path = await Filesystem.downloadFile({
                 url: apkurl,
-                path: "/wifimap/WifiMap.1.3.1.apk",
+                path: "/wifimap/WifiMap.1.4.0.apk",
                 directory: Directory.Data
             })
-            await Filesystem.getUri({path:"/wifimap/WifiMap.1.3.1.apk",directory: Directory.Data})
+            await Filesystem.getUri({path:"/wifimap/WifiMap.1.4.0.apk",directory: Directory.Data})
             .then((urlresult)=>{
             apkUri = urlresult.uri
             })
@@ -325,6 +325,7 @@ document.addEventListener('deviceready',async () => {
                     text:"Recargando Mapa..",
                     duration: 'long'
                 })
+                mapa.getSource('networks').setData(json)
                 var mapdom = document.getElementById("map")
                 mapdom.remove()
                 var mapnew = document.createElement("div")
