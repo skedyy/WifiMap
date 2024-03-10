@@ -4,6 +4,7 @@
     "ionic:build": "npm run build"
   },
   "dependencies": {
+    "@aparajita/capacitor-dark-mode": "^4.0.1",
     "@awesome-cordova-plugins/core": "^6.6.0",
     "@awesome-cordova-plugins/file-opener": "6.6.0",
     "@capacitor-community/file-opener": "^1.0.5",

@@ -4,12 +4,19 @@ body{
     margin-bottom: 0;
     margin-left: 0;
     margin-right: 0;
+    background-color: black;
 }
 #map {
     width: 100vw;
     height: 100vh;
     z-index: 1;
     position: absolute;
+}
+.progressbar{
+    z-index: 5;
+    margin-top: 99.5vh;
+    position: absolute;
+    display: none;
 }
 .buttonadd {
         appearance: none;

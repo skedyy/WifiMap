@@ -9,6 +9,7 @@ import { Preferences } from '@capacitor/preferences';
 import { Capacitor } from '@capacitor/core';
 import {ScreenOrientation} from '@capacitor/screen-orientation'
 import { FileOpener } from '@capacitor-community/file-opener';
+import { DarkMode } from '@aparajita/capacitor-dark-mode';
 import axios from 'axios';
 import write_blob from "capacitor-blob-writer";
 
@@ -17,6 +18,8 @@ var pass
 var styleUri
 var apkUri
 var mapa
+var darkMode
+var darkM
 document.addEventListener('deviceready',async () => {
     ScreenOrientation.lock({
         orientation: "portrait"
@@ -36,13 +39,12 @@ document.addEventListener('deviceready',async () => {
         await checkUpdates()
     }
     if(status == "none"|| status=="unknown" || status == "cellular"){
-        loadMap()
+        await loadMap()
     }
     async function checkUpdates(){
     let apkurl
     try {
-        const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.4.0",
-    );
+        const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.5.0",);
         var response2 = await response.text();
         console.log(response2)
         if(response2==="null"){
@@ -53,12 +55,14 @@ document.addEventListener('deviceready',async () => {
                 text:"App Desactualizada, descargando nueva versión!",
                 duration: "short"
             })
+            let progressbar = document.getElementById("progressbar")
+            progressbar.style.display = "flex"
             var path = await Filesystem.downloadFile({
                 url: apkurl,
-                path: "/wifimap/WifiMap.1.4.0.apk",
+                path: "/wifimap/WifiMap.1.5.0.apk",
                 directory: Directory.Data
             })
-            await Filesystem.getUri({path:"/wifimap/WifiMap.1.4.0.apk",directory: Directory.Data})
+            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.0.apk",directory: Directory.Data})
             .then((urlresult)=>{
             apkUri = urlresult.uri
             })
@@ -66,12 +70,16 @@ document.addEventListener('deviceready',async () => {
             filePath: apkUri,
             contentType: "application/vnd.android.package-archive",
             openWithDefault: false
-            })   
+            })
+            let progressbar2 = document.getElementById("progressbar")
+            progressbar2.style.display = "none"   
             } catch (error) {
                 Toast.show({
                     text:"Error al actualizar la app, comprueba tu conexión",
                     duration: "short"
-                })     
+                })   
+                let progressbar = document.getElementById("progressbar")
+                progressbar.style.display = "none"  
             }
             }
     }catch{
@@ -107,15 +115,29 @@ document.addEventListener('deviceready',async () => {
             try {
                 const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/style.json"
             );
-            var json = JSON.stringify(response.data);   
+            var json = JSON.stringify(response.data);
             } catch (error) {
-                loadMap()   
+                loadMap(darkMode)   
             }
             const filename = 'style.json';
             await Filesystem.writeFile({
                 directory: Directory.Data,
                 path: `wifimap/${filename}`,
                 data: json,
+                recursive: true,
+                encoding: Encoding.UTF8
+            });
+            try {
+                const darkjson = await axios.get("https://skedyy.000webhostapp.com/WifiMap/dark.json")
+                var jsondark = JSON.stringify(darkjson.data);
+            } catch (error) {
+                loadMap(darkMode)
+            }
+            const filenamedark = 'dark.json';
+            await Filesystem.writeFile({
+                directory: Directory.Data,
+                path: `wifimap/${filenamedark}`,
+                data: jsondark,
                 recursive: true,
                 encoding: Encoding.UTF8
             });
@@ -126,7 +148,7 @@ document.addEventListener('deviceready',async () => {
             );  
             var json = JSON.stringify(response.data);   
             } catch (error) {
-                loadMap()
+                loadMap(darkMode)
             }
             const filename = 'Networks.geojson';
             await Filesystem.writeFile({
@@ -137,7 +159,7 @@ document.addEventListener('deviceready',async () => {
                 encoding: Encoding.UTF8
             }).then((result)=>{
                 if(!result.uri==""||!result.uri==null||!result.uri==undefined){
-                    loadMap()
+                    loadMap(darkMode)
                 }
             })
         }
@@ -167,11 +189,19 @@ document.addEventListener('deviceready',async () => {
   loadMap()
 }
             }
-        async function loadMap(){
-    await Filesystem.getUri({path:"wifimap/style.json",directory: Directory.Data})
-    .then((urlresult)=>{
-        styleUri = urlresult.uri
-    })
+        async function loadMap(darkMode){
+            let darkM = (await DarkMode.isDarkMode()).dark
+            if(darkM == true){
+                await Filesystem.getUri({path:"wifimap/dark.json",directory: Directory.Data})
+                    .then((urlresult)=>{
+                        styleUri = urlresult.uri
+            })
+            }else{
+                await Filesystem.getUri({path:"wifimap/style.json",directory: Directory.Data})
+                    .then((urlresult)=>{
+                        styleUri = urlresult.uri
+            })
+            }
             maplibregl.OfflineMap({
         container: 'map',
         style: Capacitor.convertFileSrc(styleUri),
