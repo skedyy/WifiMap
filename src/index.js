@@ -6,11 +6,10 @@ import { Network } from '@capacitor/network';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Dialog } from '@capacitor/dialog';
 import { Preferences } from '@capacitor/preferences';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import {ScreenOrientation} from '@capacitor/screen-orientation'
 import { FileOpener } from '@capacitor-community/file-opener';
 import { DarkMode } from '@aparajita/capacitor-dark-mode';
-import axios from 'axios';
 import write_blob from "capacitor-blob-writer";
 
 var name
@@ -24,7 +23,7 @@ document.addEventListener('deviceready',async () => {
     ScreenOrientation.lock({
         orientation: "portrait"
     })
-    var url = "https://skedyy.000webhostapp.com/WifiMap/index.php"
+    var url = "https://wifimap-aaedcfae0d51.herokuapp.com/addnetworks.php"
     await Geolocation.requestPermissions("location")
     await Toast.show({
             text:"Recuerda conectarte a internet la primera vez y frecuentemente para actualizar la app!",
@@ -44,9 +43,8 @@ document.addEventListener('deviceready',async () => {
     async function checkUpdates(){
     let apkurl
     try {
-        const response = await fetch("https://skedyy.000webhostapp.com/WifiMap/latestv.php?version=1.5.0",);
+        const response = await CapacitorHttp.get({url:"https://wifimap-aaedcfae0d51.herokuapp.com/updates.php?version=1.5.1"});
         var response2 = await response.text();
-        console.log(response2)
         if(response2==="null"){
         }else{
             try {
@@ -55,14 +53,13 @@ document.addEventListener('deviceready',async () => {
                 text:"App Desactualizada, descargando nueva versión!",
                 duration: "short"
             })
-            let progressbar = document.getElementById("progressbar")
-            progressbar.style.display = "flex"
+            enableProgressBar(true)
             var path = await Filesystem.downloadFile({
                 url: apkurl,
-                path: "/wifimap/WifiMap.1.5.0.apk",
+                path: "/wifimap/WifiMap.1.5.1.apk",
                 directory: Directory.Data
             })
-            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.0.apk",directory: Directory.Data})
+            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.1.apk",directory: Directory.Data})
             .then((urlresult)=>{
             apkUri = urlresult.uri
             })
@@ -71,15 +68,13 @@ document.addEventListener('deviceready',async () => {
             contentType: "application/vnd.android.package-archive",
             openWithDefault: false
             })
-            let progressbar2 = document.getElementById("progressbar")
-            progressbar2.style.display = "none"   
+            enableProgressBar(false)  
             } catch (error) {
                 Toast.show({
                     text:"Error al actualizar la app, comprueba tu conexión",
                     duration: "short"
                 })   
-                let progressbar = document.getElementById("progressbar")
-                progressbar.style.display = "none"  
+                enableProgressBar(false)  
             }
             }
     }catch{
@@ -111,13 +106,23 @@ document.addEventListener('deviceready',async () => {
             })
         }
     }
+    async function enableProgressBar(mode){
+        if(mode==true){
+            let progressbar = document.getElementById("progressbar")
+            progressbar.style.display = "flex"
+        }else{
+            let progressbar = document.getElementById("progressbar")
+            progressbar.style.display = "none"
+        }
+    }
     async function downloadStyle() {
             try {
-                const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/style.json"
-            );
+            const response = await CapacitorHttp.request({method:"get",url:"https://wifimap-aaedcfae0d51.herokuapp.com/style.php"});
+            enableProgressBar(true)
             var json = JSON.stringify(response.data);
             } catch (error) {
-                loadMap(darkMode)   
+                loadMap(darkMode) 
+                enableProgressBar(false)  
             }
             const filename = 'style.json';
             await Filesystem.writeFile({
@@ -128,10 +133,12 @@ document.addEventListener('deviceready',async () => {
                 encoding: Encoding.UTF8
             });
             try {
-                const darkjson = await axios.get("https://skedyy.000webhostapp.com/WifiMap/dark.json")
+                const darkjson = await CapacitorHttp.get({url:"https://wifimap-aaedcfae0d51.herokuapp.com/dark.php"})
+                enableProgressBar(true)
                 var jsondark = JSON.stringify(darkjson.data);
             } catch (error) {
                 loadMap(darkMode)
+                enableProgressBar(false)
             }
             const filenamedark = 'dark.json';
             await Filesystem.writeFile({
@@ -144,11 +151,12 @@ document.addEventListener('deviceready',async () => {
         }
         async function downloadgeoJson() {
             try {
-                const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/Networks.geojson"
-            );  
+                const response = await CapacitorHttp.get({url:"https://wifimap-aaedcfae0d51.herokuapp.com/Networks.php"});  
+                enableProgressBar(true)
             var json = JSON.stringify(response.data);   
             } catch (error) {
                 loadMap(darkMode)
+                enableProgressBar(false)
             }
             const filename = 'Networks.geojson';
             await Filesystem.writeFile({
@@ -160,6 +168,7 @@ document.addEventListener('deviceready',async () => {
             }).then((result)=>{
                 if(!result.uri==""||!result.uri==null||!result.uri==undefined){
                     loadMap(darkMode)
+                    enableProgressBar(false)
                 }
             })
         }
@@ -213,38 +222,62 @@ document.addEventListener('deviceready',async () => {
         bearing: 0,
         hash: true
     }).then(async (map) => {
+        let darkM = (await DarkMode.isDarkMode()).dark
         mapa = map
         map.addControl(new maplibregl.NavigationControl())
-        map.addLayer({
+        if(darkM==true){
+            map.addLayer({
             "id": "network-layer",
             "type": "circle",
             "source": "networks",
             "paint": {
-                "circle-color": "hsla(0,0%,0%,1)",
-                "circle-stroke-width": 5,
-                "circle-stroke-color": "white"
+                "circle-color": "#008744",
+                "circle-stroke-width": 3,
+                "circle-stroke-color": "black",
             }
         })
+        }else{
+            map.addLayer({
+            "id": "network-layer",
+            "type": "circle",
+            "source": "networks",
+            "paint": {
+                "circle-color": "#008744",
+                "circle-stroke-width": 3,
+                "circle-stroke-color": "white",
+            }
+        })
+        }
             let geocontrol = new maplibregl.GeolocateControl({
                 positionOptions: {
                     enableHighAccuracy: true
                 },
+                
                 trackUserLocation: true
             })
             map.addControl(geocontrol)
             geocontrol.trigger();
-        map.on('click', 'network-layer', (e) => {
+        map.on('click', 'network-layer', async(e) => {
             const coordinates = e.features[0].geometry.coordinates.slice();
             name = e.features[0].properties.name;
             pass = e.features[0].properties.pass;
             while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
                 coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
             }
-
+            let darkM = (await DarkMode.isDarkMode()).dark
             new maplibregl.Popup()
                 .setLngLat(coordinates)
                 .setHTML(name + '<br>' + '<button id="connectbutton">Conectar!</button>'+'<br>'+'<button id="qrButton">Mostrar QR</button>')
                 .addTo(map);
+            if(darkM == true){
+            var popup = document.querySelector(".maplibregl-popup-content")
+            popup.style.background = "#121212"
+            popup.style.color = "#FFFFFF"
+            var closePopup = document.querySelector(".maplibregl-popup-close-button")
+            closePopup.style.color = "#FFFFFF"
+            var popuptip = document.querySelector(".maplibregl-popup-tip")
+            popuptip.style["border-top-color"] = "#121212"
+            }
             var button = document.getElementById("connectbutton")
             button.addEventListener("click", connectButton)
             var qrbutton = document.getElementById("qrButton")
@@ -253,34 +286,27 @@ document.addEventListener('deviceready',async () => {
     });
     }
 
-    async function connectButton() {
-    console.log("button pressed: " + name + " " + pass)
-    if(pass == ""|| pass == null || pass == undefined || pass == " "){
+    async function connectButton() {    if(pass == ""|| pass == null || pass == undefined || pass == " "){
         await Toast.show({
             text: name + " Red Abierta!",
             duration: 'long'
         });
-        console.log("toast shown")
         NativeSettings.open({
             optionAndroid: AndroidSettings.Wifi,
             optionIOS: IOSSettings.WiFi
         })
-        console.log("settings opened")
     }else{
         await Clipboard.write({
             string: pass
         });
-        console.log("clipboard copied")
         await Toast.show({
             text: name + " Contraseña Copiada al portapapeles!",
             duration: 'long'
         });
-        console.log("toast shown")
         NativeSettings.open({
             optionAndroid: AndroidSettings.Wifi,
             optionIOS: IOSSettings.WiFi
         })
-        console.log("settings opened")
     }
 }
     async function addNetwork(){
@@ -348,8 +374,7 @@ document.addEventListener('deviceready',async () => {
                 setName()
                 }
                 try {
-                const response = await axios.get("https://skedyy.000webhostapp.com/WifiMap/Networks.geojson"
-                );  
+                const response = await CapacitorHttp.get({url:"https://wifimap-aaedcfae0d51.herokuapp.com/Networks.php"});  
                 const json = JSON.stringify(response.data);   
                 await Toast.show({
                     text:"Recargando Mapa..",
@@ -474,6 +499,7 @@ document.addEventListener('deviceready',async () => {
             })
             pr.then((data) =>{
                 var img = document.getElementById("imgModal")
+                img.className = "animated fadein"
                 var outside = document.getElementById("divOutside")
                 img.style.display = "flex";
                 outside.style.display = "flex"

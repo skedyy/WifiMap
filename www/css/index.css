@@ -157,6 +157,7 @@ body{
     margin-bottom: 25vh;
     margin-right: 25vw;
     margin-left: 15vw;
+    border-radius: 8%;
 }
 #divOutside{
     position: absolute;
@@ -164,4 +165,5 @@ body{
     display: none;
     width: 100vw;
     height: 100vh;
+    backdrop-filter: blur(8px);
 }
