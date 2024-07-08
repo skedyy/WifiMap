@@ -23,7 +23,7 @@ document.addEventListener('deviceready',async () => {
     ScreenOrientation.lock({
         orientation: "portrait"
     })
-    var url = "https://wifimap-aaedcfae0d51.herokuapp.com/addnetworks.php"
+    var url = "https://wifimap.alwaysdata.net/addnetworks.php"
     await Geolocation.requestPermissions("location")
     await Toast.show({
             text:"Recuerda conectarte a internet la primera vez y frecuentemente para actualizar la app!",
@@ -43,7 +43,7 @@ document.addEventListener('deviceready',async () => {
     async function checkUpdates(){
     let apkurl
     try {
-        const response = await CapacitorHttp.get({url:"https://wifimap-aaedcfae0d51.herokuapp.com/updates.php?version=1.5.1"});
+        const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/updates.php?version=1.5.2"});
         var response2 = await response.text();
         if(response2==="null"){
         }else{
@@ -56,10 +56,10 @@ document.addEventListener('deviceready',async () => {
             enableProgressBar(true)
             var path = await Filesystem.downloadFile({
                 url: apkurl,
-                path: "/wifimap/WifiMap.1.5.1.apk",
+                path: "/wifimap/WifiMap.1.5.2.apk",
                 directory: Directory.Data
             })
-            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.1.apk",directory: Directory.Data})
+            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.2.apk",directory: Directory.Data})
             .then((urlresult)=>{
             apkUri = urlresult.uri
             })
@@ -117,7 +117,7 @@ document.addEventListener('deviceready',async () => {
     }
     async function downloadStyle() {
             try {
-            const response = await CapacitorHttp.request({method:"get",url:"https://wifimap-aaedcfae0d51.herokuapp.com/style.php"});
+            const response = await CapacitorHttp.request({method:"get",url:"https://wifimap.alwaysdata.net/style.php"});
             enableProgressBar(true)
             var json = JSON.stringify(response.data);
             } catch (error) {
@@ -133,7 +133,7 @@ document.addEventListener('deviceready',async () => {
                 encoding: Encoding.UTF8
             });
             try {
-                const darkjson = await CapacitorHttp.get({url:"https://wifimap-aaedcfae0d51.herokuapp.com/dark.php"})
+                const darkjson = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/dark.php"})
                 enableProgressBar(true)
                 var jsondark = JSON.stringify(darkjson.data);
             } catch (error) {
@@ -151,7 +151,7 @@ document.addEventListener('deviceready',async () => {
         }
         async function downloadgeoJson() {
             try {
-                const response = await CapacitorHttp.get({url:"https://wifimap-aaedcfae0d51.herokuapp.com/Networks.php"});  
+                const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/Networks.php"});  
                 enableProgressBar(true)
             var json = JSON.stringify(response.data);   
             } catch (error) {
@@ -374,7 +374,7 @@ document.addEventListener('deviceready',async () => {
                 setName()
                 }
                 try {
-                const response = await CapacitorHttp.get({url:"https://wifimap-aaedcfae0d51.herokuapp.com/Networks.php"});  
+                const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/Networks.php"});  
                 const json = JSON.stringify(response.data);   
                 await Toast.show({
                     text:"Recargando Mapa..",
