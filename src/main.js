@@ -55,7 +55,7 @@ document.addEventListener('deviceready',async () => {
     async function checkUpdates(){
     let apkurl
     try {
-        const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/updates.php?version=1.5.2"});
+        const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/updates.php?version=1.5.3"});
         var response2 = await response.text();
         if(response2==="null"){
         }else{
@@ -68,10 +68,10 @@ document.addEventListener('deviceready',async () => {
             enableProgressBar(true)
             var path = await Filesystem.downloadFile({
                 url: apkurl,
-                path: "/wifimap/WifiMap.1.5.2.apk",
+                path: "/wifimap/WifiMap.1.5.3.apk",
                 directory: Directory.Data
             })
-            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.2.apk",directory: Directory.Data})
+            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.3.apk",directory: Directory.Data})
             .then((urlresult)=>{
             apkUri = urlresult.uri
             })
