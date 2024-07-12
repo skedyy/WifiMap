@@ -18,26 +18,38 @@ var styleUri
 var apkUri
 var mapa
 var darkMode
-var darkM
+var datatoggle = document.querySelector("#mobile-data")
+let darkM = (await DarkMode.isDarkMode()).dark
 document.addEventListener('deviceready',async () => {
     ScreenOrientation.lock({
         orientation: "portrait"
     })
-    var url = "https://wifimap.alwaysdata.net/addnetworks.php"
+    var mobilepref = (await Preferences.get({key: "mobile-data"})).value
     await Geolocation.requestPermissions("location")
     await Toast.show({
             text:"Recuerda conectarte a internet la primera vez y frecuentemente para actualizar la app!",
             duration: 'long'
     });
+    var connected = (await Network.getStatus()).connected
     var status = (await Network.getStatus()).connectionType
-    if (status == "wifi"){
+    if (status == "wifi" && connected==true){
         alert("Actualizando la base de datos, No te desconectes!")
         await downloadStyle()    
         await downloadgeoJson()
         await uploadNetworks()
         await checkUpdates()
     }
-    if(status == "none"|| status=="unknown" || status == "cellular"){
+    if(status == "cellular" && mobilepref=="true" && connected==true){
+        await downloadStyle()    
+        await downloadgeoJson()
+        await uploadNetworks()
+        await checkUpdates()
+        await Toast.show({
+            text:"Estás usando datos móviles, esto puedes cambiarlo en configuracion.",
+            duration:"long"
+        })
+    }
+    if(status == "none"|| status=="unknown" || connected==false){
         await loadMap()
     }
     async function checkUpdates(){
@@ -81,6 +93,7 @@ document.addEventListener('deviceready',async () => {
     }
     }   
     async function uploadNetworks(){
+        var url = "https://wifimap.alwaysdata.net/addnetworks.php"
         var long = await Preferences.get({ key: 'long' })
         var lat = await Preferences.get({ key: 'lat' })
         var id = await Preferences.get({ key: 'id' })
@@ -104,15 +117,6 @@ document.addEventListener('deviceready',async () => {
             await Preferences.remove({
                 key: 'pass'
             })
-        }
-    }
-    async function enableProgressBar(mode){
-        if(mode==true){
-            let progressbar = document.getElementById("progressbar")
-            progressbar.style.display = "flex"
-        }else{
-            let progressbar = document.getElementById("progressbar")
-            progressbar.style.display = "none"
         }
     }
     async function downloadStyle() {
@@ -172,32 +176,6 @@ document.addEventListener('deviceready',async () => {
                 }
             })
         }
-        async function downloadtiles() {
-            try{
-                await Filesystem.readFile({
-                    path:"wifimap/WifiMap.mbtiles",
-                    directory: Directory.Data
-                }).then((result)=>{
-                    if(!result.data==""){
-                        loadMap();
-                    }else{
-                        alert("Actualizando la base de datos, no te desconectes!")
-                      throw console.error("not exists");
-                         
-                    }
-                })
-            }catch{
-  const videoResponse = await fetch("https://skedyy.000webhostapp.com/WifiMap/WifiMap.mbtiles");
-  const videoBlob = await videoResponse.blob();
-  await write_blob({
-    path: "/wifimap/WifiMap.mbtiles",
-    directory: Directory.Data,
-    blob: videoBlob,
-    recursive: true,
-  });
-  loadMap()
-}
-            }
         async function loadMap(darkMode){
             let darkM = (await DarkMode.isDarkMode()).dark
             if(darkM == true){
@@ -231,6 +209,7 @@ document.addEventListener('deviceready',async () => {
             "type": "circle",
             "source": "networks",
             "paint": {
+                "circle-radius": 8,
                 "circle-color": "#008744",
                 "circle-stroke-width": 3,
                 "circle-stroke-color": "black",
@@ -242,6 +221,7 @@ document.addEventListener('deviceready',async () => {
             "type": "circle",
             "source": "networks",
             "paint": {
+                "circle-radius": 8,
                 "circle-color": "#008744",
                 "circle-stroke-width": 3,
                 "circle-stroke-color": "white",
@@ -257,6 +237,15 @@ document.addEventListener('deviceready',async () => {
             })
             map.addControl(geocontrol)
             geocontrol.trigger();
+
+            var geoctrl = document.querySelector(".maplibregl-ctrl-top-right")
+            var geoctrlheight = geoctrl.offsetHeight
+            var btnadd = document.querySelector(".buttonadd")
+            btnadd.style.marginTop = geoctrlheight+10+"px"
+            var btnaddheight = btnadd.offsetHeight
+
+            var configbtn = document.querySelector(".configbtn")
+            configbtn.style.marginTop = geoctrlheight+51+"px"
         map.on('click', 'network-layer', async(e) => {
             const coordinates = e.features[0].geometry.coordinates.slice();
             name = e.features[0].properties.name;
@@ -309,228 +298,14 @@ document.addEventListener('deviceready',async () => {
         })
     }
 }
-    async function addNetwork(){
-    const coordinates = await Geolocation.getCurrentPosition();
-    const long = " "+coordinates.coords.longitude
-    const lat = " "+coordinates.coords.latitude
-    const id = " "+Math.floor(Math.random() * 10000)
-    var { value, cancelled } = await Dialog.prompt({
-    title: 'Añadir Red',
-    message: `Nombre y contraseña de la red`,
-    okButtonTitle: "Enviar",
-    cancelButtonTitle: "Cancelar",
-    inputPlaceholder: "Nombre:Contraseña"
-    })
-    var userinput = value.split(":")
-    var name = userinput[0]
-    var pass = userinput[1]
-        switch(cancelled){
-        case true:
-            break;
-        case false:
-        var netstatus = (await Network.getStatus()).connectionType    
-        switch(netstatus){
-            case 'wifi':
-                try {
-                    if(name===""| name===" " || name===null){
-                        await Toast.show({
-                            text:" No puedes dejar el nombre vacio!",
-                            duration:"long"
-                        })
-                    }else{
-                        fetch(url+"?lat="+lat+"&long="+long+"&id="+id+"&name="+name+"&pass="+pass)   
-                    await Toast.show({
-                    text:"Tu solicitud se ha enviado!",
-                    duration: 'short'
-                })
-                    }
-                } catch (error) {
-                    await Toast.show({
-                        text:"Error al subir la solicitud, se subirá más tarde...",
-                        duration:"short"
-                    })  
-                    const setName = async () => {
-                    await Preferences.set({
-                        key: 'lat',        
-                        value: lat,
-                    });
-                    await Preferences.set({
-                        key: 'long',        
-                        value: long,
-                    });
-                    await Preferences.set({
-                        key: 'id',        
-                        value: id,
-                    });
-                    await Preferences.set({
-                        key: 'name',
-                        value: name,
-                    });
-                    await Preferences.set({
-                        key: 'pass',
-                        value: pass,
-                    });
-                };
-                setName()
-                }
-                try {
-                const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/Networks.php"});  
-                const json = JSON.stringify(response.data);   
-                await Toast.show({
-                    text:"Recargando Mapa..",
-                    duration: 'long'
-                })
-                mapa.getSource('networks').setData(json)
-                var mapdom = document.getElementById("map")
-                mapdom.remove()
-                var mapnew = document.createElement("div")
-                mapnew.setAttribute("id","map");
-                document.body.appendChild(mapnew);
-                await downloadgeoJson()
-                loadMap()
-                } catch (error) {
-                  await Toast.show({
-                    text:"Error al actualizar :(",
-                    duration: 'short'
-                })  
-                loadMap()
-                }            
-            break;
-            case 'cellular':
-                await Toast.show({
-                    text:"Se subirá tu solicitud cuando abras la app y te conectes a internet!",
-                    duration: 'long'
-                })
-                const setName = async () => {
-                    await Preferences.set({
-                        key: 'lat',        
-                        value: lat,
-                    });
-                    await Preferences.set({
-                        key: 'long',        
-                        value: long,
-                    });
-                    await Preferences.set({
-                        key: 'id',        
-                        value: id,
-                    });
-                    await Preferences.set({
-                        key: 'name',
-                        value: name,
-                    });
-                    await Preferences.set({
-                        key: 'pass',
-                        value: pass,
-                    });
-                };
-                setName()
-                break;
-            case 'none':
-                await Toast.show({
-                    text:"Se subirá tu solicitud cuando abras la app y te conectes a internet!",
-                    duration: 'long'
-                })
-                const setName2 = async () => {
-                    await Preferences.set({
-                        key: 'lat',        
-                        value: lat,
-                    });
-                    await Preferences.set({
-                        key: 'long',        
-                        value: long,
-                    });
-                    await Preferences.set({
-                        key: 'id',        
-                        value: id,
-                    });
-                    await Preferences.set({
-                        key: 'name',
-                        value: name,
-                    });
-                    await Preferences.set({
-                        key: 'pass',
-                        value: pass,
-                    });
-                };
-                setName2()
-                break;
-            case 'unknown':
-                await Toast.show({
-                    text:"Se subirá tu solicitud cuando abras la app y te conectes a internet!",
-                    duration: 'long'
-                })
-                const setName3 = async () => {
-                    await Preferences.set({
-                        key: 'lat',        
-                        value: lat,
-                    });
-                    await Preferences.set({
-                        key: 'long',        
-                        value: long,
-                    });
-                    await Preferences.set({
-                        key: 'id',        
-                        value: id,
-                    });
-                    await Preferences.set({
-                        key: 'name',
-                        value: name,
-                    });
-                    await Preferences.set({
-                        key: 'pass',
-                        value: pass,
-                    });
-                };
-                setName3()
-                break;
-        }
-            break;
-    }
-    }
-    async function showqr(){
-            const qrcode = require('wifi-qr-code-generator')
-            if(pass == ""|| pass === "null" || pass == undefined || pass == " "){
-                const pr = qrcode.generateWifiQRCode({
-                ssid: name,
-                password: "",
-                encryption: 'None',
-                hiddenSSID: false,
-                outputFormat: { type: 'image/png' }
-            })
-            pr.then((data) =>{
-                var img = document.getElementById("imgModal")
-                img.className = "animated fadein"
-                var outside = document.getElementById("divOutside")
-                img.style.display = "flex";
-                outside.style.display = "flex"
-                img.src = data
-                outside.addEventListener("click", ()=>{
-                    img.style.display = "none"
-                    outside.style.display = "none"
-                })
-            })   
-            }else{
-                const pr = qrcode.generateWifiQRCode({
-                ssid: name,
-                password: pass,
-                encryption: 'WPA',
-                hiddenSSID: false,
-                outputFormat: { type: 'image/png' }
-            })
-            pr.then((data) =>{
-                var img = document.getElementById("imgModal")
-                var outside = document.getElementById("divOutside")
-                img.style.display = "flex";
-                outside.style.display = "flex"
-                img.src = data
-                outside.addEventListener("click", ()=>{
-                    img.style.display = "none"
-                    outside.style.display = "none"
-                })
-            })
-            }
-        }
-    window.addNetwork = addNetwork
-    window.showqr = showqr
-
+    
     }, false)
+export async function enableProgressBar(mode){
+    if(mode==true){
+        let progressbar = document.getElementById("progressbar")
+        progressbar.style.display = "flex"
+    }else{
+        let progressbar = document.getElementById("progressbar")
+        progressbar.style.display = "none"
+    }
+}

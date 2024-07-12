@@ -14,7 +14,48 @@
 </head>
 <body>
     <div id='map'></div>
-    <button class="buttonadd" onclick="addNetwork()">+</button>
+    <ion-button id="addNetworkbtn" class="buttonadd" onclick="loadAddNetwork()" color="light">+</ion-button>
+    <ion-button id="configbtn" class="configbtn" color="light" onclick="loadConfigModal()"><ion-icon slot="icon-only" md="settings-outline"></ion-icon></ion-button>
+    <ion-modal id="config-modal" trigger="configbtn">
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Configuracion</ion-title>
+            <ion-buttons slot="end">
+              <ion-button onclick="closeConfig()" strong="true">Guardar</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+            <ion-list>
+                <ion-item id="configs-cont">
+                  <ion-toggle id="mobile-data">Utilizar datos móviles</ion-toggle>
+                </ion-item>
+              </ion-list>
+        </ion-content>
+      </ion-modal>
+      <ion-modal id="addNetwork-modal" trigger="addNetworkbtn">
+        <ion-header>
+          <ion-toolbar>
+            <ion-buttons slot="start">
+              <ion-button onclick="closeAddNetwork()">Cancelar</ion-button>
+            </ion-buttons>
+            <ion-title>Añadir Nueva Red</ion-title>
+            <ion-buttons slot="end">
+              <ion-button onclick="addNetwork()" strong="true">Enviar</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+            <ion-list>
+                <ion-item id="addNetwork-cont">
+                  <ion-input id="nameInput" label="Nombre de la red" label-placement="stacked" type="text" clear-input="true"></ion-input>
+                </ion-item>
+                <ion-item id="addNetwork-cont">
+                  <ion-input id="passInput" label="Contraseña" label-placement="stacked" type="text" clear-input="true"></ion-input>
+                </ion-item>
+              </ion-list>
+        </ion-content>
+      </ion-modal>
     <div id="divOutside"></div>
     <img class="imgModal" src="img/img.jpg" style="display: none;" alt="QR CODE" id="imgModal">
     <script src="js/main.js"></script>
