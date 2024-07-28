@@ -55,11 +55,15 @@ document.addEventListener('deviceready',async () => {
     let apkurl
     try {
         const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/updates.php?version=1.5.4"});
-        var response2 = await response.text();
+        var response2 = response.data;
+        console.log(response2)
         if(response2==="null"){
+            console.log("App actualizada")
+            console.log(response2)
         }else{
             try {
                 apkurl = await response2
+                console.log(response2)
             Toast.show({
                 text:"App Desactualizada, descargando nueva versión!",
                 duration: "short"
