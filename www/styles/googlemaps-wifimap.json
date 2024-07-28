@@ -1,0 +1,44 @@
+{
+    "version": 8,
+    "name": "GoogleMaps WifiMap",
+    "metadata": {
+
+    },
+    "sources": {
+        "hillshading": {
+            "type": "rasteroffline",
+            "path": "data/WifiMap2.mbtiles"
+        }
+    },
+    "layers":[
+        {
+            "id": "hillshading",
+            "type": "raster",
+            "source": "hillshading",
+            "layout": {
+              "visibility": "visible"
+            },
+            "paint": {
+              "raster-opacity": {
+                "base": 0.5,
+                "stops": [
+                  [
+                    3,
+                    0
+                  ],
+                  [
+                    5,
+                    0.5
+                  ],
+                  [
+                    12,
+                    0.5
+                  ]
+                ]
+              },
+              "raster-fade-duration": 300,
+              "raster-contrast": 0
+            }
+          }
+    ]
+  }

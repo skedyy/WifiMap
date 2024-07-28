@@ -33,7 +33,6 @@ document.addEventListener('deviceready',async () => {
     var connected = (await Network.getStatus()).connected
     var status = (await Network.getStatus()).connectionType
     if (status == "wifi" && connected==true){
-        alert("Actualizando la base de datos, No te desconectes!")
         await downloadStyle()    
         await downloadgeoJson()
         await uploadNetworks()
@@ -55,7 +54,7 @@ document.addEventListener('deviceready',async () => {
     async function checkUpdates(){
     let apkurl
     try {
-        const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/updates.php?version=1.5.3"});
+        const response = await CapacitorHttp.get({url:"https://wifimap.alwaysdata.net/updates.php?version=1.5.4"});
         var response2 = await response.text();
         if(response2==="null"){
         }else{
@@ -68,10 +67,10 @@ document.addEventListener('deviceready',async () => {
             enableProgressBar(true)
             var path = await Filesystem.downloadFile({
                 url: apkurl,
-                path: "/wifimap/WifiMap.1.5.3.apk",
+                path: "/wifimap/WifiMap.1.5.4.apk",
                 directory: Directory.Data
             })
-            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.3.apk",directory: Directory.Data})
+            await Filesystem.getUri({path:"/wifimap/WifiMap.1.5.4.apk",directory: Directory.Data})
             .then((urlresult)=>{
             apkUri = urlresult.uri
             })
@@ -196,7 +195,7 @@ document.addEventListener('deviceready',async () => {
             2.15,
             41.38
         ],
-        zoom: 1,
+        zoom: 15,
         bearing: 0,
         hash: true
     }).then(async (map) => {
@@ -298,7 +297,50 @@ document.addEventListener('deviceready',async () => {
         })
     }
 }
-    
+    async function showqr(){
+        const qrcode = require('wifi-qr-code-generator')
+        if(pass == ""|| pass === "null" || pass == undefined || pass == " "){
+            const pr = qrcode.generateWifiQRCode({
+            ssid: name,
+            password: "",
+            encryption: 'None',
+            hiddenSSID: false,
+            outputFormat: { type: 'image/png' }
+        })
+    pr.then((data) =>{
+        var img = document.getElementById("imgModal")
+        img.className = "animated fadein"
+        var outside = document.getElementById("divOutside")
+        img.style.display = "flex";
+        outside.style.display = "flex"
+        img.src = data
+        outside.addEventListener("click", ()=>{
+            img.style.display = "none"
+            outside.style.display = "none"
+        })
+    })   
+    }else{
+        const pr = qrcode.generateWifiQRCode({
+        ssid: name,
+        password: pass,
+        encryption: 'WPA',
+        hiddenSSID: false,
+        outputFormat: { type: 'image/png' }
+    })
+    pr.then((data) =>{
+        var img = document.getElementById("imgModal")
+        var outside = document.getElementById("divOutside")
+        img.style.display = "flex";
+        outside.style.display = "flex"
+        img.src = data
+        outside.addEventListener("click", ()=>{
+            img.style.display = "none"
+            outside.style.display = "none"
+        })
+    })
+    }
+    }
+    window.showqr = showqr
     }, false)
 export async function enableProgressBar(mode){
     if(mode==true){

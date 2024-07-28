@@ -235,56 +235,29 @@ document.addEventListener('deviceready',async () => {
             enableProgressBar(false)
         },1000)   
     }
-    async function showqr(){
-            const qrcode = require('wifi-qr-code-generator')
-            if(pass == ""|| pass === "null" || pass == undefined || pass == " "){
-                const pr = qrcode.generateWifiQRCode({
-                ssid: name,
-                password: "",
-                encryption: 'None',
-                hiddenSSID: false,
-                outputFormat: { type: 'image/png' }
+    async function deleteFiles(){
+        await Dialog.confirm({
+            title:"ATENCION!",
+            message:"Vas a borrar los datos sin conexion de la app!",
+            okButtonTitle:"Borrar",
+            cancelButtonTitle:"Cancelar",
+        }).then(async (value)=>{
+            console.log(value)
+            if(value.value==true){
+                const filename = 'Networks.geojson';
+            await Filesystem.deleteFile({
+                directory: Directory.Data,
+                path: `wifimap/${filename}`,
             })
-            pr.then((data) =>{
-                var img = document.getElementById("imgModal")
-                img.className = "animated fadein"
-                var outside = document.getElementById("divOutside")
-                img.style.display = "flex";
-                outside.style.display = "flex"
-                img.src = data
-                outside.addEventListener("click", ()=>{
-                    img.style.display = "none"
-                    outside.style.display = "none"
-                })
-            })   
-            }else{
-                const pr = qrcode.generateWifiQRCode({
-                ssid: name,
-                password: pass,
-                encryption: 'WPA',
-                hiddenSSID: false,
-                outputFormat: { type: 'image/png' }
-            })
-            pr.then((data) =>{
-                var img = document.getElementById("imgModal")
-                var outside = document.getElementById("divOutside")
-                img.style.display = "flex";
-                outside.style.display = "flex"
-                img.src = data
-                outside.addEventListener("click", ()=>{
-                    img.style.display = "none"
-                    outside.style.display = "none"
-                })
-            })
+            alert("Debes reiniciar la aplicación y estar conectado WiFi o Datos Móviles para descargar los datos de nuevo!")
             }
+        })
     }
-    
     //No poner funciones despues de estas lineas
-    window.showqr = showqr
     window.closeConfig = closeConfig
     window.loadConfigModal = loadConfigModal
     window.loadAddNetwork = loadAddNetwork
     window.addNetwork = addNetwork
     window.closeAddNetwork = closeAddNetwork
-
+    window.deleteFiles = deleteFiles
 }, false)

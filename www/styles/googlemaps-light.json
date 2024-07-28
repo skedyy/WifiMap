@@ -1,0 +1,36 @@
+{
+    "version": 8,
+    "name": "GoogleMaps WifiMap",
+    "metadata": {
+
+    },
+    "sources": {
+        "baselayer": {
+            "type": "rasteroffline",
+            "path": "tiles/WifiMap2.mbtiles",
+            "maxzoom": 18,
+            "tileSize": 256
+        },
+        "networks":{"type":"geojson","data":"https://localhost/_capacitor_file_/data/user/0/com.skedyy.wifimap/files/wifimap/Networks.geojson"}
+    },
+    "layers":[
+      {
+        "id": "background",
+        "type": "background",
+        "paint": {
+            "background-color": "hsl(47, 26%, 88%)"
+        }
+    },
+      {
+        "id": "baselayer",
+        "type": "raster",
+        "source": "baselayer",
+        "layout": {
+          "visibility": "visible"
+        },
+        "raster":{
+          "raster-resampling": "nearest"
+        }
+      }
+    ]
+  }
